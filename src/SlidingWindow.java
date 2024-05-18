@@ -517,15 +517,217 @@ public class SlidingWindow {
         return sb.reverse().toString();
     }
 
+    public List<Integer> runningSumDivide(int[] nums, int k) {
+        if(nums.length  == 0) {
+            return new ArrayList<>();
+        }
+        List<Integer> list = new ArrayList<>();
+        int index = 0;
+        int originalIndex = 0;
+        int sum = 0;
+        while(index < nums.length) {
+            sum += nums[index];
+            index++;
+            if((index - originalIndex)%k == 0) {
+                list.add(sum/k);
+                if(originalIndex >= nums.length) {
+                    continue;
+                }
+                sum = sum - nums[originalIndex];
+                originalIndex++;
+            }
+        }
+        return list;
+    }
+
+    // message, timestamp
+    HashMap<String, Integer> hmap;
+    public void loggerInitialize() {
+        hmap = new HashMap<>();
+    }
+
+    public boolean shouldPrintMessage(int timestamp, String message) {
+        if(!hmap.containsKey(message)) {
+            hmap.put(message, timestamp);
+            return true;
+        }else{
+            int time = hmap.get(message);
+            if(time + 10 <= timestamp) {
+                hmap.put(message, timestamp);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public long countSubarrays(int[] nums, int minK, int maxK) {
+        int result = 0;
+        List<List<Integer>> list = new ArrayList<>();
+        for(int i = 0; i < nums.length; i++) {
+            List<Integer> l = new ArrayList<>();
+            for(int j = i; j < nums.length; j++) {
+                int val = nums[j];
+                l.add(val);
+                if(checkMax(l, minK, maxK)) {
+                    result++;
+                }
+            }
+        }
+        return result;
+    }
+
+    public boolean checkMax(List<Integer> temp, int minK, int maxK) {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for(int i = 0; i < temp.size(); i++) {
+            max = Math.max(temp.get(i), max);
+            min = Math.min(temp.get(i), min);
+        }
+        if(min == minK && max == maxK) {
+            return true;
+        }
+        return false;
+    }
+
+    // 1,3,5,2,7,5
+    public long countSubarraysFast(int[] nums, int minK, int maxK) {
+        long result = 0;
+        int left = -1;
+        int minPosition = -1;
+        int maxPosition = -1;
+        for(int i = 0; i < nums.length; i++) {
+            int val = nums[i];
+            if(val < minK || val > maxK) {
+                left = i;
+            }
+            if(val == minK) {
+                minPosition = i;
+            }
+            if(val == maxK) {
+                maxPosition = i;
+            }
+            result += Math.max(0, Math.min(maxPosition, minPosition) - left);
+        }
+        return result;
+    }
+
+    public long countSubArrays(int[] nums, int k){
+        List<List<Integer>> result = new ArrayList<>();
+        generateContiguousSubarrays(nums, result, k);
+        long out = 0;
+        for(List<Integer> list: result) {
+            HashMap<Integer, Integer> hmap = new HashMap<>();
+            int max = Integer.MIN_VALUE;
+            for(int i = 0; i < list.size(); i++) {
+                int key = list.get(i);
+                if(!hmap.containsKey(key)) {
+                    hmap.put(key, 1);
+                }else {
+                    hmap.put(key, hmap.get(key) + 1);
+                }
+                max = Math.max(max, hmap.get(key));
+            }
+            if(max >= k) {
+                System.out.println(list);
+                out++;
+            }
+        }
+        return out;
+    }
+
+    public static List<List<Integer>> generateContiguousSubarrays(int[] arr, List<List<Integer>> result, int k) {
+        int n = arr.length;
+
+        for (int i = 0; i < n; i++) {
+            List<Integer> subarray = new ArrayList<>();
+            for (int j = i; j < n; j++) {
+                subarray.add(arr[j]);
+                if(!result.contains(subarray) && subarray.size() >= k) {
+                    result.add(new ArrayList<>(subarray));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public int maxSumSubArray(int[] nums, int k) {
+        int sum = 0;
+        int max = Integer.MIN_VALUE;
+        int index = 0;
+        for(int i = 0; i < nums.length; i++) {
+            int val = nums[i];
+            sum += val;
+            if(i - index + 1 == k) {
+                max = Math.max(max, sum);
+                sum -= nums[index];
+                index = i;
+            }
+        }
+        return max;
+    }
+
+    public int countAnagrams(String str, String pattern) {
+        StringBuilder sb = new StringBuilder();
+        int index = 0;
+        HashMap<Character, Integer> hmapWord = new HashMap<>();
+        for(int i = 0; i < pattern.length(); i++) {
+            char ch = pattern.charAt(i);
+            hmapWord.put(ch, hmapWord.getOrDefault(ch, 0) + 1);
+        }
+        int result = 0;
+        HashMap<Character, Integer> hmap = new HashMap<>();
+        for(int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            sb.append(ch);
+            hmap.put(ch, hmap.getOrDefault(ch, 0) + 1);
+            if(i - index  + 1 == pattern.length()) {
+                if(checkAna(hmap, pattern)) {
+                    result++;
+                }
+                char chold = str.charAt(index);
+                index++;
+                int value = hmap.get(chold);
+                value--;
+                if(value == 0) {
+                    hmap.remove(chold);
+                }else{
+                    hmap.put(chold, value);
+                }
+            }
+        }
+        return result;
+    }
+
+    public boolean checkAna(HashMap<Character, Integer> currentMap, String word) {
+        HashMap<Character, Integer> tmap = new HashMap<>(currentMap);
+        for(int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            if(tmap.containsKey(ch)) {
+                int val = tmap.get(ch);
+                val--;
+                if(val == 0) {
+                    tmap.remove(ch);
+                }else{
+                    tmap.put(ch, val);
+                }
+            }else{
+                return false;
+            }
+        }
+        return tmap.size() == 0? true:false;
+    }
+
+
+
 
     public static void main(String[] args) {
         int n = 3;
         SlidingWindow ss = new SlidingWindow();
-        int[][] meeting = new int[][]{{0,10},{1,5},{2,7},{3,4}};
-        int[] nums1 = new int[]{2,2,4,5};
-        int[] nums2 = new int[]{1,2,3,4};
-        String num1 = "190.980";
-        String num2 = "10.98";
-        System.out.println(ss.add_numbers(num2, num1));
+        int[] nums = new int[]{3, 5, 10, 1, 9};
+        String str = "forxxorfxdofr";
+        String word = "for";
+        System.out.println(ss.countAnagrams(str, word));
+
     }
 }
