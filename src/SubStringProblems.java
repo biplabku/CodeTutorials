@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class SubStringProblems {
 
@@ -87,6 +84,49 @@ public class SubStringProblems {
         return nums[left];
     }
 
+    class intCount{
+        int value;
+        int count;
+        public intCount(int value, int count) {
+            this.value = value;
+            this.count = count;
+        }
+    }
+    public int minOperations(int[] nums) {
+        if(nums.length == 0) {
+            return 0;
+        }
+        HashMap<Integer, Integer> hmap = new HashMap<>();
+        for(int i: nums) {
+            hmap.put(i, hmap.getOrDefault(i, 0) + 1);
+        }
+        PriorityQueue<intCount> queue = new PriorityQueue<>(new Comparator<intCount>() {
+            @Override
+            public int compare(intCount o1, intCount o2) {
+                return o2.count - o1.count;
+            }
+        });
+        Iterator iter = hmap.entrySet().iterator();
+        while(iter.hasNext()) {
+            Map.Entry pair = (Map.Entry) iter.next();
+            int value = (int)pair.getKey();
+            int count = (int)pair.getValue();
+            queue.add(new intCount(value, count));
+        }
+        int result = 0;
+        while(!queue.isEmpty()) {
+            intCount c = queue.poll();
+            if(c.count == 1) {
+                return -1;
+            }
+            result += c.count/3;
+            if(c.count%3 != 0) {
+                result++;
+            }
+        }
+        return result;
+    }
+
     public static void main(String[] args) {
         SubStringProblems ss = new SubStringProblems();
         String str = "leetcode";
@@ -94,7 +134,7 @@ public class SubStringProblems {
         list.add("de");
         list.add("le");
         list.add("e");
-        int[] nums = new int[]{0,1,2,4,5,6,7};
-        System.out.println(ss.findMin(nums));
+        int[] nums = new int[]{19,19,19,19,19,19,19,19,19,19,19,19,19};
+        System.out.println(ss.minOperations(nums));
     }
 }
